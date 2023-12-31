@@ -133,29 +133,6 @@ use Carbon\Carbon;
     });
 </script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#namaKlinik').change(function() {
-            var klinikId = $(this).val();
-            if (klinikId) {
-                $.ajax({
-                    type: "GET",
-                    url: "{{ route('getJadwalByKlinik') }}",
-                    data: {
-                        klinik_id: klinikId
-                    },
-                    success: function(data) {
-                        $('#waktuPertemuan').empty();
-                        $.each(data, function(key, value) {
-                            $('#waktuPertemuan').append('<option value="' + value.value + '">' + value.label + '</option>');
-                        });
-                    }
-                });
-            } else {
-                $('#waktuPertemuan').empty();
-            }
-        });
-    });
-</script>
+
 
 @endpush

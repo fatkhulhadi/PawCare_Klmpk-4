@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\QueryException;
 
 class AuthController extends Controller
 {
@@ -38,13 +39,12 @@ class AuthController extends Controller
         }
     }
 
-    public function register(Request $request)
+   public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required',
-            'email' => 'required',
+            'email' => 'required|email',
             'password' => 'required',
-            
         ]);
 
         if ($request->password !== $request->confirmPassword) {
@@ -52,20 +52,31 @@ class AuthController extends Controller
             return back();
         }
 
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->level = 'user';
-        $user->country = $request->country;
-        $user->phoneNumber = $request->phoneNumber;
-        $user->save();
+        try {
+            $user = new User();
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->level = 'user';
+            $user->country = $request->country;
+            $user->phoneNumber = $request->phoneNumber;
+            $user->save();
 
-        Auth::login($user);
-        
-        event(new Registered($user));
+            Auth::login($user);
 
-        return redirect ('/email-verify');
+            event(new Registered($user));
+
+            return redirect('/email-verify');
+        } catch (QueryException $e) {
+            if ($e->errorInfo[1] == 1062) { 
+                Session()->flash('error', 'Email sudah terdaftar. Silakan gunakan email lain.');
+                return back();
+            } else {
+                
+                Session()->flash('error', 'Terjadi kesalahan saat mendaftar.');
+                return back();
+            }
+        }
     }
 
     public function logout()
